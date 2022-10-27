@@ -2,12 +2,11 @@
 
 namespace Alphaolomi\Sarufi\Exceptions;
 
-
 /**
  * Exception class thrown when a file couldn't be found.
  *
  * @author Alpha Olomi
- 
+
  */
 class FileNotFoundException extends \RuntimeException
 {
