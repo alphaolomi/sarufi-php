@@ -4,7 +4,6 @@
 [![Tests](https://github.com/alphaolomi/sarufi-php/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/alphaolomi/sarufi-php/actions/workflows/run-tests.yml)
 [![Total Downloads](https://img.shields.io/packagist/dt/alphaolomi/sarufi-php.svg?style=flat-square)](https://packagist.org/packages/alphaolomi/sarufi-php)
 
-This is where your description should go. Try and limit it to a paragraph or two. Consider adding a small example.
 
 ## Installation
 
@@ -17,12 +16,29 @@ composer require alphaolomi/sarufi-php
 ## Usage
 
 ```php
-$sarufi = new Alphaolomi\Sarufi([]);
+use Alphaolomi\Sarufi\Sarufi;
 
-$sarufi->login('Hello, Alphaolomi!');
+$sarufi = new Sarufi('your_email', 'your_password');
+
+$bot1 = $sarufi->createBot([
+    "name" => "YOUR AWESOME BOT NAME",
+    "description" => "PUT DESCRIPTION HERE",
+    "industry" => "YOUR BOT INDUSTRY",
+    "intents" => [],
+    "flows" => [],
+]);
+print_r($bot1);
+
+// OR using 
+$bot2 = $sarufi->createFromFile(
+    intents: 'data/intents.yaml',
+    flow: 'data/flow.yaml',
+    metadata: 'data/metadata.yaml'
+);
 
 
-$sarufi->createBot('mybot!');
+print_r($bot2);
+
 ```
 
 ## Testing
