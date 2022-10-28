@@ -3,14 +3,13 @@
 namespace Alphaolomi\Sarufi;
 
 use Alphaolomi\Sarufi\Exceptions\FileNotFoundException;
-use Symfony\Component\Yaml\Yaml;
-use Symfony\Component\Yaml\Exception\ParseException;
 use GuzzleHttp\Client as GuzzleHttpClient;
-
+use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Yaml;
 
 class Sarufi
 {
-	const BASE_URL = "https://api.sarufi.io/";
+    public const BASE_URL = "https://api.sarufi.io/";
 
 	protected string $username;
 	protected string $password;
@@ -45,15 +44,16 @@ class Sarufi
 		return json_decode((string) $res->getBody(), true);
 	}
 
-	private function updateToken()
-	{
-		try {
-			$this->token = $this->getToken();
-			return true;
-		} catch (\Throwable $th) {
-			return false;
-		}
-	}
+    private function updateToken()
+    {
+        try {
+            $this->token = $this->getToken();
+
+            return true;
+        } catch (\Throwable $th) {
+            return false;
+        }
+    }
 
 	// use absolute path here
 	// check if its ablsote path 
@@ -66,14 +66,15 @@ class Sarufi
 			throw new FileNotFoundException(path: $path);
 		}
 
-		if (str_ends_with($path, '.json')) {
-			try {
-				$fileStringContent = file_get_contents($path);
-				return json_decode($fileStringContent, true);
-			} catch (\Throwable $th) {
-				throw $th;
-			}
-		}
+        if (str_ends_with($path, '.json')) {
+            try {
+                $fileStringContent = file_get_contents($path);
+
+                return json_decode($fileStringContent, true);
+            } catch (\Throwable $th) {
+                throw $th;
+            }
+        }
 
 		if (str_ends_with($path, '.yml') || str_ends_with($path, '.yaml')) {
 
@@ -86,10 +87,10 @@ class Sarufi
 			}
 		}
 
-		throw new \RuntimeException(
-			sprintf("Unable to read file: %s", $path)
-		);
-	}
+        throw new \RuntimeException(
+            sprintf("Unable to read file: %s", $path)
+        );
+    }
 
 	//
 	public function createBot(
@@ -181,39 +182,38 @@ class Sarufi
 			"json" => $data
 		]);
 
-		return json_decode((string) $res->getBody(), true);
-	}
+        return json_decode((string) $res->getBody(), true);
+    }
 
+    // $sarufi = new Sarufi('your_email', 'your_password')
+    // $bot = $sarufi->updateFromFile(
+    //     id:5,
+    //     intents:'data/intents.json',
+    //     flow:'data/flow.json',
+    //     metadata:'data/metadata.json'
+    // );
+    public function updateFromFile(
+        $id,
+        $intents,
+        $flow,
+        $metadata,
+    ) {
+        $_intents = $this->readFile($intents);
+        $_flow = $this->readFile($flow);
+        $_metadata = $this->readFile($metadata);
 
-	// $sarufi = new Sarufi('your_email', 'your_password')
-	// $bot = $sarufi->updateFromFile(
-	//     id:5,
-	//     intents:'data/intents.json',
-	//     flow:'data/flow.json',
-	//     metadata:'data/metadata.json'
-	// );	
-	public function updateFromFile(
-		$id,
-		$intents,
-		$flow,
-		$metadata,
-	) {
-		$_intents = $this->readFile($intents);
-		$_flow = $this->readFile($flow);
-		$_metadata = $this->readFile($metadata);
+        $res = $this->updateBot(
+            id: $id,
+            name: $_metadata["name"],
+            description: $_metadata["description"],
+            industry: $_metadata["industry"],
+            visibleOnCommunity: $_metadata["visible_on_community"],
+            intents: $_intents,
+            flow: $_flow,
+        );
 
-		$res = $this->updateBot(
-			id: $id,
-			name: $_metadata["name"],
-			description: $_metadata["description"],
-			industry: $_metadata["industry"],
-			visibleOnCommunity: $_metadata["visible_on_community"],
-			intents: $_intents,
-			flow: $_flow,
-		);
-
-		return $res;
-	}
+        return $res;
+    }
 
 
 	public function getBot($id)
@@ -238,24 +238,23 @@ class Sarufi
 		// return Bot::fromJson((string)$response->getBody(),$this->token);
 	}
 
+    private function fetchResponse(
+        int $botId,
+        string $chatId,
+        string $message,
+        string $messageType,
+        string $channel
+    ) {
+        $url = self::BASE_URL . "conversation/";
+        if ($channel == "whatsapp") {
+            $url = $url . "whatsapp/";
+        }
 
-	private function fetchResponse(
-		int $botId,
-		string $chatId,
-		string $message,
-		string $messageType,
-		string $channel
-	) {
-		$url = self::BASE_URL . "conversation/";
-		if ($channel == "whatsapp") {
-			$url = $url . "whatsapp/";
-		}
-
-		$data = [
-			"chat_id" => $chatId,
-			"bot_id" => $botId,
-			"message" => $message,
-			"message_type" => $messageType,
+        $data = [
+            "chat_id" => $chatId,
+            "bot_id" => $botId,
+            "message" => $message,
+            "message_type" => $messageType,
 
 		];
 		$res =  $this->httpClient->post($url, [
@@ -263,8 +262,8 @@ class Sarufi
 			"json" => $data
 		]);
 
-		return json_decode((string)$res->getBody(), true);
-	}
+        return json_decode((string)$res->getBody(), true);
+    }
 
 
 	public function chat(
