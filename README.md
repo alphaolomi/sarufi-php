@@ -51,7 +51,7 @@ print_r($bot2);
 	)`
 - `public function updateFromFile( $id, $intents, $flow, $metadata)`
 - `public function getBot($id)`
-- public function chat(int $botId, string $chatId, string $message = "Hello", string $messageType = "text", string $channel = "general")
+- `public function chat(int $botId, string $chatId, string $message = "Hello", string $messageType = "text", string $channel = "general")`
 - `public function deleteBot($id)`
 ## Testing
 
