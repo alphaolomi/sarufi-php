@@ -43,8 +43,8 @@ it('can instantiate Sarufi class', function () {
 //     // expect($sarufi)->toBeInstanceOf(Sarufi::class);
 //     $filePath = __DIR__. '/intent.yaml';
 //     $data = $sarufi->readFile(
-//     //   path: 'intent.json'          
-//       path:  $filePath         
+//     //   path: 'intent.json'
+//       path:  $filePath
 //     );
 //     expect(json_encode($data))->dd();
 // });
@@ -57,7 +57,7 @@ it('can instantiate Sarufi class', function () {
 //     $bot = $sarufi->createFromFile(
 //         intents: __DIR__. "/intents.yaml",
 //         metadata: __DIR__. "/metadata.yaml",
-//         flow: __DIR__. "/flow.yaml",        
+//         flow: __DIR__. "/flow.yaml",
 //     );
 //     expect($bot)->dd();
 // });
@@ -70,7 +70,7 @@ it('can instantiate Sarufi class', function () {
 //     id: 81,
 //       intents: __DIR__. "/intents.yaml",
 //       metadata: __DIR__. "/metadata.yaml",
-//       flow: __DIR__. "/flow.yaml",        
+//       flow: __DIR__. "/flow.yaml",
 //   );
 //   expect($bot)->dd();
 // });
@@ -108,7 +108,7 @@ it('can instantiate Sarufi class', function () {
 //   $sarufi = new Sarufi("aidannyshayo@gmail.com", "password123");
 //   // expect($sarufi)->toBeInstanceOf(Sarufi::class);
 //   $res = $sarufi->deleteBot(
-//     81,    
+//     81,
 //   );
 //   // expect($bots)->toBeArray();
 //   expect($res)->dd();

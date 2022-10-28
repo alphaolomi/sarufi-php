@@ -4,7 +4,6 @@ namespace Alphaolomi\Sarufi;
 
 class Bot
 {
-
     protected $id;
     protected $name;
     protected $industry;
