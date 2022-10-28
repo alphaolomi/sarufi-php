@@ -16,30 +16,24 @@ class Sarufi
     protected string $token;
     protected GuzzleHttpClient $httpClient;
 
-    protected $headers = [
-        // fixme:
-        // "Authorization" => "Bearer " . $this->token,
-        "Content-Type" => "application/json",
-    ];
-
-    public function __construct(string $username, string $password, null|string $token)
+    public function __construct(string $username, string $password, null|string $token = null)
     {
         $this->username = $username;
         $this->password = $password;
+        $this->httpClient = new GuzzleHttpClient();
         if (is_null($token)) {
             try {
                 $this->token = $this->getToken()['token'];
             } catch (\Throwable $th) {
-                //throw $th;
+                throw new \RuntimeException("Invalid credentials");
             }
         }
-        $this->httpClient = new GuzzleHttpClient();
     }
 
     private function getToken()
     {
         $url = self::BASE_URL . "users/login";
-        $res = $this->httpClient->get($url, [
+        $res = $this->httpClient->post($url, [
             "headers" => [],
             "json" => [
                 "username" => $this->username,
@@ -47,7 +41,7 @@ class Sarufi
             ],
         ]);
 
-        return json_decode((string) $res->getBody());
+        return json_decode((string) $res->getBody(), true);
     }
 
     private function updateToken()
@@ -61,7 +55,11 @@ class Sarufi
         }
     }
 
-    private static function readFile(string $path)
+    // use absolute path here
+    // check if its ablsote path
+    // otherwise check current dir for file
+    // if missing throw missing
+    public static function readFile(string $path)
     {
         if (! file_exists($path)) {
             throw new FileNotFoundException(path: $path);
@@ -77,7 +75,7 @@ class Sarufi
             }
         }
 
-        if (str_ends_with($path, '.yml' || str_ends_with($path, '.yaml'))) {
+        if (str_ends_with($path, '.yml') || str_ends_with($path, '.yaml')) {
             try {
                 $data = Yaml::parseFile($path);
 
@@ -93,13 +91,14 @@ class Sarufi
         );
     }
 
+    //
     public function createBot(
         string $name,
         null|string $description = null,
-        null|string $industry = null,
+        string $industry = "general",
         $flow = [],
         $intents = [],
-        bool $visible_on_community = false,
+        bool $visibleOnCommunity = false
     ) {
         $url = self::BASE_URL . "chatbot";
         $data = [
@@ -108,12 +107,16 @@ class Sarufi
             "intents" => $intents,
             "flows" => $flow,
             "industry" => $industry,
-            "visible_on_community" => $visible_on_community,
+            "visible_on_community" => $visibleOnCommunity,
         ];
-        $response = $this->httpClient->post($url, ["json" => $data, "headers" => $this->headers]);
-        if ($response->getSata == 200) {
-            return (string)$response->getBody();
-        }
+        $response = $this->httpClient->post($url, [
+            "json" => $data,
+            "headers" => [
+                "Authorization" => "Bearer " . $this->token,
+            ],
+        ]);
+
+        return json_decode((string)$response->getBody(), true);
         // return Bot(response.json(), token=self.token)
     }
 
@@ -123,17 +126,22 @@ class Sarufi
     //  flow: 'data/flow.json',
     //  metadata: 'data/metadata.json'
     // );
-    public function createFromFile($intents, $flow, $metadata)
+    public function createFromFile($metadata = null, $intents = null, $flow = null)
     {
+        // must have metadata
+        // other are optional
+        //
         $_intents = $this->readFile($intents);
         $_flow = $this->readFile($flow);
         $_metadata = $this->readFile($metadata);
+
+
 
         $res = $this->createBot(
             name: $_metadata["name"],
             description: $_metadata["description"],
             industry: $_metadata["industry"],
-            visible_on_community: $_metadata["visible_on_community"],
+            visibleOnCommunity: $_metadata["visible_on_community"],
             intents: $_intents,
             flow: $_flow,
         );
@@ -170,7 +178,7 @@ class Sarufi
             "visible_on_community" => $visibleOnCommunity,
         ];
         $res = $this->httpClient->put($url, [
-            "headers" => $this->headers,
+            "headers" => ["Authorization" => "Bearer " . $this->token,],
             "json" => $data,
         ]);
 
@@ -210,18 +218,22 @@ class Sarufi
     public function getBot($id)
     {
         $url = self::BASE_URL . "chatbot/{$id}";
-        $response = $this->httpClient->get($url, ["headers" => $this->headers,]);
+        $response = $this->httpClient->get($url, [
+            "headers" => ["Authorization" => "Bearer " . $this->token],
+        ]);
 
-        return json_decode((string)$response->getBody());
+        return json_decode((string)$response->getBody(), true);
         // return Bot::fromJson((string)$response->getBody(),$this->token);
     }
 
     public function bots(): array
     {
         $url = self::BASE_URL . "chatbots";
-        $response = $this->httpClient->get($url, ["headers" => $this->headers]);
+        $response = $this->httpClient->get($url, [
+            "headers" => ["Authorization" => "Bearer " . $this->token,],
+        ]);
 
-        return json_decode((string)$response->getBody());
+        return json_decode((string)$response->getBody(), true);
         // return Bot::fromJson((string)$response->getBody(),$this->token);
     }
 
@@ -245,7 +257,7 @@ class Sarufi
 
         ];
         $res = $this->httpClient->post($url, [
-            "headers" => $this->headers,
+            "headers" => ["Authorization" => "Bearer " . $this->token],
             "json" => $data,
         ]);
 
@@ -259,21 +271,22 @@ class Sarufi
         string $messageType = "text",
         string $channel = "general",
     ) {
-        $response = $this->fetchResponse(
+        return  $this->fetchResponse(
             botId: $botId,
             chatId: $chatId,
             message: $message,
             messageType: $messageType,
             channel: $channel,
         );
-
-        return $response->getBody();
     }
 
     public function deleteBot($id)
     {
         $url = self::BASE_URL . "chatbot/{$id}";
-        $response = $this->httpClient->delete($url);
+        $response = $this->httpClient->delete(
+            $url,
+            ["headers" => ["Authorization" => "Bearer " . $this->token],]
+        );
 
         return json_decode((string)$response->getBody(), true);
     }

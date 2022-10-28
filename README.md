@@ -20,6 +20,7 @@ use Alphaolomi\Sarufi\Sarufi;
 
 $sarufi = new Sarufi('your_email', 'your_password');
 
+// Create Empty bot
 $bot1 = $sarufi->createBot([
     "name" => "YOUR AWESOME BOT NAME",
     "description" => "PUT DESCRIPTION HERE",
@@ -29,19 +30,32 @@ $bot1 = $sarufi->createBot([
 ]);
 print_r($bot1);
 
-// OR using 
+// OR
+// From files with intent and metadata
 $bot2 = $sarufi->createFromFile(
-    intents: 'data/intents.yaml',
-    flow: 'data/flow.yaml',
-    metadata: 'data/metadata.yaml'
+    intents: __DIR__ . 'data/intents.yaml',
+    flow:  __DIR__ . 'data/flow.yaml',
+    metadata:  __DIR__ . 'data/metadata.yaml'
 );
 
 
 print_r($bot2);
-
 ```
 
+##  API avalable
+
+- `Sarufi(string $username, string $password, null|string $token = null)`
+- `public function createBot(string $name, null|string $description = null, string $industry = "general", $flow = [], $intents = [], bool $visibleOnCommunity = false)`
+- `public function createFromFile($metadata = null, $intents = null, $flow = null)`
+- `public function updateBot($id, $name, $industry, $description, $intents, $flow, $visibleOnCommunity
+	)`
+- `public function updateFromFile( $id, $intents, $flow, $metadata)`
+- `public function getBot($id)`
+- public function chat(int $botId, string $chatId, string $message = "Hello", string $messageType = "text", string $channel = "general")
+- `public function deleteBot($id)`
 ## Testing
+
+Using [PestPHP](https://pestphp.com/).
 
 ```bash
 composer test
