@@ -1,0 +1,15 @@
+greetings:
+  message:
+   - Hi, how can I help you?
+  next_state: end
+
+goodbye:
+  message:
+   - Bye
+   - See you soon
+  next_state: end
+
+thanks:
+  message:
+   - You are welcome
+  next_state: end

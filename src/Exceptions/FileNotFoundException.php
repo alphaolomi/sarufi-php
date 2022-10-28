@@ -21,6 +21,6 @@ class FileNotFoundException extends \RuntimeException
             }
         }
 
-        parent::__construct($message, $code, $previous, $path);
+        parent::__construct($message, $code, $previous);
     }
 }
