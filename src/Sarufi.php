@@ -8,7 +8,7 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Sarufi 
+ * Sarufi
  * @author Alpha Olomi
  * @version 1.0
  */
@@ -66,11 +66,11 @@ class Sarufi
     // if missing throw missing
     /**
      * @internal
-     * 
+     *
      */
     public static function readFile(string $path)
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             throw new FileNotFoundException(path: $path);
         }
 
@@ -130,7 +130,7 @@ class Sarufi
     }
 
     /**
-     * 
+     *
      * Create bot from file(s)
      * ## Example
      * ```php
@@ -165,9 +165,9 @@ class Sarufi
         return $res;
     }
 
-    /** 
+    /**
      * Update a bot
-     * 
+     *
      * Example
      * ```
      * $sarufi = new Sarufi('your_email', 'your_password')
@@ -210,8 +210,8 @@ class Sarufi
 
     /**
      * Update a bot from file(s)
-     *      
-     * 
+     *
+     *
      * Example
      * ```php
      * $sarufi = new Sarufi('your_email', 'your_password')
@@ -302,14 +302,14 @@ class Sarufi
 
     /**
      * Get next reposnse, assuiming use have a already created a bot
-     * 
+     *
      * @param     int $botId,
      * @param  string $chatId
      * @param  string $message
      * @param  string $messageType
      * @param  string $channel
-     * @return array          
-     * 
+     * @return array
+     *
      */
     public function chat(
         int $botId,
@@ -329,8 +329,8 @@ class Sarufi
 
     /**
      * Delete a bot
-     * 
-     * @param string $id 
+     *
+     * @param string $id
      * @return array
      */
     public function deleteBot($id)
