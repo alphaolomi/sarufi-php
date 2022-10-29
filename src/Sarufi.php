@@ -7,6 +7,11 @@ use GuzzleHttp\Client as GuzzleHttpClient;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
+/**
+ * Sarufi 
+ * @author Alpha Olomi
+ * @version 1.0
+ */
 class Sarufi
 {
     public const BASE_URL = "https://api.sarufi.io/";
@@ -59,9 +64,13 @@ class Sarufi
     // check if its ablsote path
     // otherwise check current dir for file
     // if missing throw missing
+    /**
+     * @internal
+     * 
+     */
     public static function readFile(string $path)
     {
-        if (! file_exists($path)) {
+        if (!file_exists($path)) {
             throw new FileNotFoundException(path: $path);
         }
 
@@ -96,7 +105,7 @@ class Sarufi
         string $name,
         null|string $description = null,
         string $industry = "general",
-        $flow = [],
+        $flows = [],
         $intents = [],
         bool $visibleOnCommunity = false
     ) {
@@ -105,7 +114,7 @@ class Sarufi
             "name" => $name,
             "description" => $description,
             "intents" => $intents,
-            "flows" => $flow,
+            "flows" => $flows,
             "industry" => $industry,
             "visible_on_community" => $visibleOnCommunity,
         ];
@@ -120,19 +129,26 @@ class Sarufi
         // return Bot(response.json(), token=self.token)
     }
 
-    // $sarufi = new Sarufi('your_email', 'your_password')
-    // $bot = $sarufi->createFromFile(
-    //  intents: 'data/intents.json',
-    //  flow: 'data/flow.json',
-    //  metadata: 'data/metadata.json'
-    // );
-    public function createFromFile($metadata = null, $intents = null, $flow = null)
+    /**
+     * 
+     * Create bot from file(s)
+     * ## Example
+     * ```php
+     * $sarufi = new Sarufi('your_email', 'your_password')
+     * $bot = $sarufi->createFromFile(
+     *  intents: 'data/intents.json',
+     *  flows: 'data/flow.json',
+     *  metadata: 'data/metadata.json'
+     * );
+     * ````
+     */
+    public function createFromFile($metadata = null, $intents = null, $flows = null)
     {
         // must have metadata
         // other are optional
         //
         $_intents = $this->readFile($intents);
-        $_flow = $this->readFile($flow);
+        $_flows = $this->readFile($flows);
         $_metadata = $this->readFile($metadata);
 
 
@@ -143,37 +159,44 @@ class Sarufi
             industry: $_metadata["industry"],
             visibleOnCommunity: $_metadata["visible_on_community"],
             intents: $_intents,
-            flow: $_flow,
+            flows: $_flows,
         );
 
         return $res;
     }
 
-    // $sarufi = new Sarufi('your_email', 'your_password')
-    // $bot = $sarufi->updateBot(
-    // 		id: 5,
-    //      name: 'Maria',
-    //      description: 'A chatbot that does this and that',
-    //      intents: [],
-    //      flow: [],
-    //      industry: 'healthcare',
-    //      visibleOnCommunity: True
-    // );
+    /** 
+     * Update a bot
+     * 
+     * Example
+     * ```
+     * $sarufi = new Sarufi('your_email', 'your_password')
+     * $bot = $sarufi->updateBot(
+     * 		id: 5,
+     *      name: 'Maria',
+     *      description: 'A chatbot that does this and that',
+     *      intents: [],
+     *      flows: [],
+     *      industry: 'healthcare',
+     *      visibleOnCommunity: True
+     * );
+     * ```
+     */
     public function updateBot(
         $id,
-        $name,
-        $industry,
-        $description,
-        $intents,
-        $flow,
-        $visibleOnCommunity,
+        string $name,
+        string $industry,
+        string $description,
+        array $intents = [],
+        array $flows = [],
+        bool $visibleOnCommunity = false,
     ) {
         $url = self::BASE_URL . "chatbot/{$id}";
         $data = [
             "name" => $name,
             "description" => $description,
             "intents" => $intents,
-            "flows" => $flow,
+            "flows" => $flows,
             "industry" => $industry,
             "visible_on_community" => $visibleOnCommunity,
         ];
@@ -185,21 +208,29 @@ class Sarufi
         return json_decode((string) $res->getBody(), true);
     }
 
-    // $sarufi = new Sarufi('your_email', 'your_password')
-    // $bot = $sarufi->updateFromFile(
-    //     id:5,
-    //     intents:'data/intents.json',
-    //     flow:'data/flow.json',
-    //     metadata:'data/metadata.json'
-    // );
+    /**
+     * Update a bot from file(s)
+     *      
+     * 
+     * Example
+     * ```php
+     * $sarufi = new Sarufi('your_email', 'your_password')
+     * $bot = $sarufi->updateFromFile(
+     *     id:5,
+     *     intents:'data/intents.json',
+     *     flows:'data/flow.json',
+     *     metadata:'data/metadata.json'
+     * );
+     * ````
+     */
     public function updateFromFile(
-        $id,
-        $intents,
-        $flow,
-        $metadata,
+        string $id,
+        string $intents,
+        string $flows,
+        string $metadata,
     ) {
         $_intents = $this->readFile($intents);
-        $_flow = $this->readFile($flow);
+        $_flow = $this->readFile($flows);
         $_metadata = $this->readFile($metadata);
 
         $res = $this->updateBot(
@@ -209,13 +240,17 @@ class Sarufi
             industry: $_metadata["industry"],
             visibleOnCommunity: $_metadata["visible_on_community"],
             intents: $_intents,
-            flow: $_flow,
+            flows: $_flow,
         );
 
         return $res;
     }
 
-    public function getBot($id)
+    /**
+     * Get bot details
+     * @param string $id
+     */
+    public function getBot(string $id)
     {
         $url = self::BASE_URL . "chatbot/{$id}";
         $response = $this->httpClient->get($url, [
@@ -245,9 +280,10 @@ class Sarufi
         string $channel
     ) {
         $url = self::BASE_URL . "conversation/";
-        if ($channel == "whatsapp") {
-            $url = $url . "whatsapp/";
-        }
+        // fixme: whatsapp
+        // if ($channel == "whatsapp") {
+        //     $url = $url . "whatsapp/";
+        // }
 
         $data = [
             "chat_id" => $chatId,
@@ -264,6 +300,17 @@ class Sarufi
         return json_decode((string)$res->getBody(), true);
     }
 
+    /**
+     * Get next reposnse, assuiming use have a already created a bot
+     * 
+     * @param     int $botId,
+     * @param  string $chatId
+     * @param  string $message
+     * @param  string $messageType
+     * @param  string $channel
+     * @return array          
+     * 
+     */
     public function chat(
         int $botId,
         string $chatId /* = str(uuid4()) */,
@@ -280,6 +327,12 @@ class Sarufi
         );
     }
 
+    /**
+     * Delete a bot
+     * 
+     * @param string $id 
+     * @return array
+     */
     public function deleteBot($id)
     {
         $url = self::BASE_URL . "chatbot/{$id}";

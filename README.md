@@ -45,11 +45,10 @@ print_r($bot2);
 ##  API avalable
 
 - `Sarufi(string $username, string $password, null|string $token = null)`
-- `public function createBot(string $name, null|string $description = null, string $industry = "general", $flow = [], $intents = [], bool $visibleOnCommunity = false)`
-- `public function createFromFile($metadata = null, $intents = null, $flow = null)`
-- `public function updateBot($id, $name, $industry, $description, $intents, $flow, $visibleOnCommunity
-	)`
-- `public function updateFromFile( $id, $intents, $flow, $metadata)`
+- `public function createBot(string $name, null|string $description = null, string $industry = "general", $flows = [], $intents = [], bool $visibleOnCommunity = false)`
+- `public function createFromFile($metadata = null, $intents = null, $flows = null)`
+- `public function updateBot($id, $name, $industry, $description, $intents, $flows, $visibleOnCommunity)`
+- `public function updateFromFile( $id, $intents, $flows, $metadata)`
 - `public function getBot($id)`
 - `public function chat(int $botId, string $chatId, string $message = "Hello", string $messageType = "text", string $channel = "general")`
 - `public function deleteBot($id)`

@@ -10,7 +10,7 @@ class Bot
     protected $description;
     protected $visible_on_community;
     protected $intents;
-    protected $flow;
+    protected $flows;
     protected $token;
 
     public function __construct(array $data)
