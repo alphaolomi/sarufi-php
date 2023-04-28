@@ -46,7 +46,7 @@ class Sarufi
      */
     public static function readFile(string $path)
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             throw new FileNotFoundException(path: $path);
         }
 
@@ -61,11 +61,12 @@ class Sarufi
         }
 
         if (str_ends_with($path, '.yml') || str_ends_with($path, '.yaml')) {
-            if (!class_exists(Yaml::class)) {
+            if (! class_exists(Yaml::class)) {
                 throw new \RuntimeException(
                     sprintf("Yaml parser not found, install symfony/yaml package")
                 );
             }
+
             try {
                 $data = Yaml::parseFile($path);
 
@@ -141,8 +142,7 @@ class Sarufi
         ?string $metadata = null,
         ?string $intents = null,
         ?string $flows = null
-        )
-    {
+    ) {
         // must have metadata
         // other are optional
         //
@@ -310,7 +310,7 @@ class Sarufi
     ) {
         $data = [
             "chat_id" => $chatId,
-            "bot_id" => $botId
+            "bot_id" => $botId,
         ];
 
         $res = $this->httpClient->post("conversation/status", ["json" => $data]);
@@ -341,7 +341,7 @@ class Sarufi
     ) {
         $data = [
             "message" => $message,
-            "bot_id" => $botId
+            "bot_id" => $botId,
         ];
 
         $res = $this->httpClient->post("predict/intent", ["json" => $data]);
@@ -356,7 +356,7 @@ class Sarufi
     ) {
         $data = [
             "chat_id" => $chatId,
-            "bot_id" => $botId
+            "bot_id" => $botId,
         ];
 
         $res = $this->httpClient->post("conversation/state", ["json" => $data]);
@@ -399,7 +399,7 @@ class Sarufi
         $data = [
             "bot_id" => $botId,
             "theme_config" => $theme_config,
-            "approved_domain" => $approved_domain
+            "approved_domain" => $approved_domain,
         ];
         $res = $this->httpClient->post("plugin/$botId", ["json" => $data]);
 

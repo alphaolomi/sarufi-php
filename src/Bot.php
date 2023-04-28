@@ -12,11 +12,11 @@ class Bot
     protected $intents;
     protected $flows;
     protected $modelName;
-    protected  $confidenceThreshold;
+    protected $confidenceThreshold;
     protected $evaluationMetrics;
-    protected  $language; // english or swahili
-    protected  $webhookUrl;
-    protected  $webhookTriggerIntents;
+    protected $language; // english or swahili
+    protected $webhookUrl;
+    protected $webhookTriggerIntents;
 
     public function __construct(
         string $name = "My Bot",
