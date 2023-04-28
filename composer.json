@@ -3,7 +3,8 @@
     "description": "Sarufi for PHP",
     "keywords": [
         "alphaolomi",
-        "sarufi-php"
+        "sarufi",
+        "convesional ai"
     ],
     "homepage": "https://github.com/alphaolomi/sarufi-php",
     "license": "MIT",
@@ -15,13 +16,16 @@
         }
     ],
     "require": {
-        "php": "^8.0",
-        "guzzlehttp/guzzle": "^7.5",
-        "symfony/yaml": "^6.1"
+        "php": ">=7.4",
+        "guzzlehttp/guzzle": "^7.2"
     },
     "require-dev": {
+        "symfony/yaml": "^5.4",
         "friendsofphp/php-cs-fixer": "^3.0",
-        "pestphp/pest": "^1.20"        
+        "pestphp/pest": "^1.20"
+    },
+    "suggest": {
+        "symfony/yaml": "To use YAML configuration"
     },
     "autoload": {
         "psr-4": {

@@ -14,50 +14,26 @@ use Symfony\Component\Yaml\Yaml;
  */
 class Sarufi
 {
-    public const BASE_URL = "https://api.sarufi.io/";
+    public const BASE_URL = "https://developers.sarufi.io/";
 
-    protected string $username;
-    protected string $password;
     protected string $token;
     protected GuzzleHttpClient $httpClient;
 
-    public function __construct(string $username, string $password, null|string $token = null)
+    public function __construct(string $token = null)
     {
-        $this->username = $username;
-        $this->password = $password;
-        $this->httpClient = new GuzzleHttpClient();
-        if (is_null($token)) {
-            try {
-                $this->token = $this->getToken()['token'];
-            } catch (\Throwable $th) {
-                throw new \RuntimeException("Invalid credentials");
-            }
+        $token = empty(trim($token));
+        if ($token) {
+            throw new \RuntimeException("Invalid credentials, token is empty");
         }
-    }
-
-    private function getToken()
-    {
-        $url = self::BASE_URL . "users/login";
-        $res = $this->httpClient->post($url, [
-            "headers" => [],
-            "json" => [
-                "username" => $this->username,
-                "password" => $this->password,
+        $this->token = $token;
+        $this->httpClient = new GuzzleHttpClient([
+            'base_uri' => self::BASE_URL,
+            'headers' => [
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->token,
             ],
         ]);
-
-        return json_decode((string) $res->getBody(), true);
-    }
-
-    private function updateToken()
-    {
-        try {
-            $this->token = $this->getToken();
-
-            return true;
-        } catch (\Throwable $th) {
-            return false;
-        }
     }
 
     // use absolute path here
@@ -65,12 +41,12 @@ class Sarufi
     // otherwise check current dir for file
     // if missing throw missing
     /**
+     * Read json, yaml or PHP array file
      * @internal
-     *
      */
     public static function readFile(string $path)
     {
-        if (! file_exists($path)) {
+        if (!file_exists($path)) {
             throw new FileNotFoundException(path: $path);
         }
 
@@ -85,6 +61,11 @@ class Sarufi
         }
 
         if (str_ends_with($path, '.yml') || str_ends_with($path, '.yaml')) {
+            if (!class_exists(Yaml::class)) {
+                throw new \RuntimeException(
+                    sprintf("Yaml parser not found, install symfony/yaml package")
+                );
+            }
             try {
                 $data = Yaml::parseFile($path);
 
@@ -95,6 +76,16 @@ class Sarufi
             }
         }
 
+        if (str_ends_with($path, '.php')) {
+            try {
+                $data = include $path;
+
+                return $data;
+            } catch (\Throwable $th) {
+                throw $th;
+            }
+        }
+
         throw new \RuntimeException(
             sprintf("Unable to read file: %s", $path)
         );
@@ -102,14 +93,19 @@ class Sarufi
 
     //
     public function createBot(
-        string $name,
+        string $name = "My Bot",
         null|string $description = null,
         string $industry = "general",
         $flows = [],
         $intents = [],
-        bool $visibleOnCommunity = false
+        bool $visibleOnCommunity = false,
+        $modelName = null,
+        int $confidence_threshold = null,
+        $evaluationMetrics = [],
+        $language = null, // english or swahili
+        $webhookUrl = null,
+        $webhookTriggerIntents = [],
     ) {
-        $url = self::BASE_URL . "chatbot";
         $data = [
             "name" => $name,
             "description" => $description,
@@ -117,32 +113,35 @@ class Sarufi
             "flows" => $flows,
             "industry" => $industry,
             "visible_on_community" => $visibleOnCommunity,
+            "model_name" => $modelName,
+            "confidence_threshold" => $confidence_threshold,
+            "evaluation_metrics" => $evaluationMetrics,
+            "language" => $language,
+            "webhook_url" => $webhookUrl,
+            "webhook_trigger_intents" => $webhookTriggerIntents,
         ];
-        $response = $this->httpClient->post($url, [
-            "json" => $data,
-            "headers" => [
-                "Authorization" => "Bearer " . $this->token,
-            ],
-        ]);
+        $response = $this->httpClient->post("chatbot", ["json" => $data]);
 
         return json_decode((string)$response->getBody(), true);
-        // return Bot(response.json(), token=self.token)
     }
 
     /**
-     *
      * Create bot from file(s)
      * ## Example
      * ```php
-     * $sarufi = new Sarufi('your_email', 'your_password')
+     * $sarufi = new Sarufi('your_token')
      * $bot = $sarufi->createFromFile(
-     *  intents: 'data/intents.json',
-     *  flows: 'data/flow.json',
-     *  metadata: 'data/metadata.json'
+     *  intents: __DIR__ . '/intents.json',
+     *  flows: __DIR__ . '/flows.json',
+     *  metadata: __DIR__ . '/metadata.json',
      * );
      * ````
      */
-    public function createFromFile($metadata = null, $intents = null, $flows = null)
+    public function createFromFile(
+        ?string $metadata = null,
+        ?string $intents = null,
+        ?string $flows = null
+        )
     {
         // must have metadata
         // other are optional
@@ -154,12 +153,18 @@ class Sarufi
 
 
         $res = $this->createBot(
+            intents: $_intents,
+            flows: $_flows,
             name: $_metadata["name"],
             description: $_metadata["description"],
             industry: $_metadata["industry"],
             visibleOnCommunity: $_metadata["visible_on_community"],
-            intents: $_intents,
-            flows: $_flows,
+            modelName: $_metadata["model_name"],
+            confidence_threshold: $_metadata["confidence_threshold"],
+            evaluationMetrics: $_metadata["evaluation_metrics"],
+            language: $_metadata["language"],
+            webhookUrl: $_metadata["webhook_url"],
+            webhookTriggerIntents: $_metadata["webhook_trigger_intents"],
         );
 
         return $res;
@@ -170,7 +175,7 @@ class Sarufi
      *
      * Example
      * ```
-     * $sarufi = new Sarufi('your_email', 'your_password')
+     * $sarufi = new Sarufi('your_token')
      * $bot = $sarufi->updateBot(
      * 		id: 5,
      *      name: 'Maria',
@@ -191,7 +196,6 @@ class Sarufi
         array $flows = [],
         bool $visibleOnCommunity = false,
     ) {
-        $url = self::BASE_URL . "chatbot/{$id}";
         $data = [
             "name" => $name,
             "description" => $description,
@@ -200,10 +204,7 @@ class Sarufi
             "industry" => $industry,
             "visible_on_community" => $visibleOnCommunity,
         ];
-        $res = $this->httpClient->put($url, [
-            "headers" => ["Authorization" => "Bearer " . $this->token,],
-            "json" => $data,
-        ]);
+        $res = $this->httpClient->put("chatbot/{$id}", ["json" => $data]);
 
         return json_decode((string) $res->getBody(), true);
     }
@@ -214,7 +215,7 @@ class Sarufi
      *
      * Example
      * ```php
-     * $sarufi = new Sarufi('your_email', 'your_password')
+     * $sarufi = new Sarufi('your_token')
      * $bot = $sarufi->updateFromFile(
      *     id:5,
      *     intents:'data/intents.json',
@@ -252,24 +253,16 @@ class Sarufi
      */
     public function getBot(string $id)
     {
-        $url = self::BASE_URL . "chatbot/{$id}";
-        $response = $this->httpClient->get($url, [
-            "headers" => ["Authorization" => "Bearer " . $this->token],
-        ]);
+        $response = $this->httpClient->get("chatbot/{$id}");
 
         return json_decode((string)$response->getBody(), true);
-        // return Bot::fromJson((string)$response->getBody(),$this->token);
     }
 
     public function bots(): array
     {
-        $url = self::BASE_URL . "chatbots";
-        $response = $this->httpClient->get($url, [
-            "headers" => ["Authorization" => "Bearer " . $this->token,],
-        ]);
+        $response = $this->httpClient->get("chatbots");
 
         return json_decode((string)$response->getBody(), true);
-        // return Bot::fromJson((string)$response->getBody(),$this->token);
     }
 
     private function fetchResponse(
@@ -277,14 +270,8 @@ class Sarufi
         string $chatId,
         string $message,
         string $messageType,
-        string $channel
+        string $channel = "whatsapp",
     ) {
-        $url = self::BASE_URL . "conversation/";
-        // fixme: whatsapp
-        // if ($channel == "whatsapp") {
-        //     $url = $url . "whatsapp/";
-        // }
-
         $data = [
             "chat_id" => $chatId,
             "bot_id" => $botId,
@@ -292,10 +279,137 @@ class Sarufi
             "message_type" => $messageType,
 
         ];
-        $res = $this->httpClient->post($url, [
-            "headers" => ["Authorization" => "Bearer " . $this->token],
-            "json" => $data,
-        ]);
+        $url = $channel === "whatsapp" ? "conversation/whatsapp/" : "conversation/";
+
+        $res = $this->httpClient->post($url, ["json" => $data]);
+
+        return json_decode((string)$res->getBody(), true);
+    }
+
+    // conversation
+    public function conversation(
+        int $botId,
+        string $chatId,
+        string $message,
+        string $messageType,
+        string $channel = "whatsapp",
+    ) {
+        return $this->fetchResponse(
+            botId: $botId,
+            chatId: $chatId,
+            message: $message,
+            messageType: $messageType,
+            channel: $channel,
+        );
+    }
+
+    // conversationStatus
+    public function conversationStatus(
+        int $botId,
+        string $chatId,
+    ) {
+        $data = [
+            "chat_id" => $chatId,
+            "bot_id" => $botId
+        ];
+
+        $res = $this->httpClient->post("conversation/status", ["json" => $data]);
+
+        return json_decode((string)$res->getBody(), true);
+    }
+
+    // intents
+    public function intents(int $botId)
+    {
+        $res = $this->httpClient->get("intents/{$botId}");
+
+        return json_decode((string)$res->getBody(), true);
+    }
+
+    // flow
+    public function flows(int $botId)
+    {
+        $res = $this->httpClient->get("flow/{$botId}");
+
+        return json_decode((string)$res->getBody(), true);
+    }
+
+    // preditIntent
+    public function predictIntent(
+        int $botId,
+        string $message,
+    ) {
+        $data = [
+            "message" => $message,
+            "bot_id" => $botId
+        ];
+
+        $res = $this->httpClient->post("predict/intent", ["json" => $data]);
+
+        return json_decode((string)$res->getBody(), true);
+    }
+
+    // conversionState
+    public function conversionState(
+        int $botId,
+        string $chatId,
+    ) {
+        $data = [
+            "chat_id" => $chatId,
+            "bot_id" => $botId
+        ];
+
+        $res = $this->httpClient->post("conversation/state", ["json" => $data]);
+
+        return json_decode((string)$res->getBody(), true);
+    }
+
+    // chatBotUsers
+    public function chatBotUsers(int $botId)
+    {
+
+        $res = $this->httpClient->get("chatbot/$botId/users");
+
+        return json_decode((string)$res->getBody(), true);
+    }
+
+    // conversationHistory
+    public function conversationHistory(int $botId, string $chatId)
+    {
+        $res = $this->httpClient->get("conversation/history/$botId/$chatId");
+
+        return json_decode((string)$res->getBody(), true);
+    }
+
+    // getPlugin
+    public function getPlugin(int $botId, string $pluginName)
+    {
+        $res = $this->httpClient->get("plugin/$botId/$pluginName");
+
+        return json_decode((string)$res->getBody(), true);
+    }
+
+    // addPlugin
+    public function addPlugin(
+        int $botId,
+        $theme_config = [],
+        $approved_domain = null
+    ) {
+
+        $data = [
+            "bot_id" => $botId,
+            "theme_config" => $theme_config,
+            "approved_domain" => $approved_domain
+        ];
+        $res = $this->httpClient->post("plugin/$botId", ["json" => $data]);
+
+        return json_decode((string)$res->getBody(), true);
+    }
+
+    // deletePlugin
+    public function deletePlugin(int $botId)
+    {
+        $res = $this->httpClient->delete("plugin/$botId");
 
         return json_decode((string)$res->getBody(), true);
     }
@@ -313,7 +427,7 @@ class Sarufi
      */
     public function chat(
         int $botId,
-        string $chatId /* = str(uuid4()) */,
+        string $chatId,
         string $message = "Hello",
         string $messageType = "text",
         string $channel = "general",
@@ -335,11 +449,7 @@ class Sarufi
      */
     public function deleteBot($id)
     {
-        $url = self::BASE_URL . "chatbot/{$id}";
-        $response = $this->httpClient->delete(
-            $url,
-            ["headers" => ["Authorization" => "Bearer " . $this->token],]
-        );
+        $response = $this->httpClient->delete("chatbot/{$id}");
 
         return json_decode((string)$response->getBody(), true);
     }
