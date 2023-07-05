@@ -7,7 +7,7 @@
 
 ## Installation
 
-You can install the package via composer:
+You can install the package via Composer:
 
 ```bash
 composer require alphaolomi/sarufi-php
@@ -18,9 +18,9 @@ composer require alphaolomi/sarufi-php
 ```php
 use Alphaolomi\Sarufi\Sarufi;
 
-$sarufi = new Sarufi('your_email', 'your_password');
+$sarufi = new Sarufi('your_token');
 
-// Create Empty bot
+// Create an Empty bot
 $bot1 = $sarufi->createBot([
     "name" => "YOUR AWESOME BOT NAME",
     "description" => "PUT DESCRIPTION HERE",
@@ -42,9 +42,9 @@ $bot2 = $sarufi->createFromFile(
 print_r($bot2);
 ```
 
-##  API avalable
+##  API available
 
-- `Sarufi(string $username, string $password, null|string $token = null)`
+- `Sarufi(string $token)`
 - `public function createBot(string $name, null|string $description = null, string $industry = "general", $flows = [], $intents = [], bool $visibleOnCommunity = false)`
 - `public function createFromFile($metadata = null, $intents = null, $flows = null)`
 - `public function updateBot($id, $name, $industry, $description, $intents, $flows, $visibleOnCommunity)`
@@ -52,9 +52,10 @@ print_r($bot2);
 - `public function getBot($id)`
 - `public function chat(int $botId, string $chatId, string $message = "Hello", string $messageType = "text", string $channel = "general")`
 - `public function deleteBot($id)`
+
 ## Testing
 
-Using [PestPHP](https://pestphp.com/).
+Uses [PestPHP](https://pestphp.com/).
 
 ```bash
 composer test
@@ -62,7 +63,7 @@ composer test
 
 ## Changelog
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+Please see [CHANGELOG](CHANGELOG.md) for more information on recent changes.
 
 ## Contributing
 
@@ -70,7 +71,7 @@ Please see [CONTRIBUTING](https://github.com/spatie/.github/blob/main/CONTRIBUTI
 
 ## Security Vulnerabilities
 
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
+Please review [our security policy](../../security/policy) on reporting security vulnerabilities.
 
 ## Credits
 
