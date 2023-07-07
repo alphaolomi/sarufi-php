@@ -21,8 +21,7 @@ class Sarufi
 
     public function __construct(string $token = null)
     {
-        $token = empty(trim($token));
-        if ($token) {
+        if ($token == null) {
             throw new \RuntimeException("Invalid credentials, token is empty");
         }
         $this->token = $token;
